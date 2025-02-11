@@ -22,6 +22,7 @@ namespace VäderDataAnalys.Services
             using StreamReader sr = new StreamReader(Path);
 
             int i = 0;
+
             while (!sr.EndOfStream)
             {
                 var line = await sr.ReadLineAsync();
