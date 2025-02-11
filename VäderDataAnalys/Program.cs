@@ -15,6 +15,8 @@ namespace VäderDataAnalys
 
             await dataExtractService.ProcessFilteredData();
 
+            await dataExtractService.CalculateAverageTempPerDay();
+
         }
     }
 }
