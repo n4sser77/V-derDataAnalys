@@ -10,8 +10,10 @@ namespace VäderDataAnalys
 
             DataExtractService dataExtractService = new DataExtractService();
 
-            await dataExtractService.ExtractData();
-            Console.WriteLine("data extract complete!!!");
+            //await dataExtractService.ProcessFile();
+            //Console.WriteLine("data extract complete!!!");
+
+            await dataExtractService.ProcessFilteredData();
 
         }
     }
