@@ -88,7 +88,7 @@ public class DataExtractService
 
     public async Task ProcessFilteredData()
     {
-        Regex pattern1 = new Regex(@"(?<Date>^(?<Year>\d{4})-(?<Month>\d{2})-(?<Day>\d{2})) (?<Time>\d{2}:\d{2}:\d{2}),(?<Position>Inne|Ute),(?<Temprature>\-?\d+\.?\d*),(?<Humidity>\d{2})");
+        Regex pattern1 = new Regex(@"(?<Date>^(?<Year>\d{4})-(?<Month>0[1-9]|1[0-2])-(?<Day>\d{2})) (?<Time>\d{2}:\d{2}:\d{2}),(?<Position>Inne|Ute),(?<Temprature>\-?\d+\.?\d*),(?<Humidity>\d{2})");
         try
         {
 
@@ -130,7 +130,7 @@ public class DataExtractService
 
 
 
-    public async Task CalculateAverageTempPerDay()
+    public async Task<(Dictionary<string, double>, Dictionary<string, double>)> CalculateAverageTempPerDay()
     {
         // Group by Date
         var groupedByDate = WeatherData
@@ -138,15 +138,29 @@ public class DataExtractService
             .OrderBy(g => g.Key) // Ensures dates are in order
             .ToDictionary(g => g.Key, g => g.ToList());
 
+
+
+        Dictionary<string, double> averageTempDict = new();
+        Dictionary<string, double> averageHumidDict = new();
+        double averageTempPerDay = 0;
+        double averageHumidityPerDay = 0;
+
         // Print grouped data
         foreach (var group in groupedByDate)
         {
-            Console.WriteLine($"Date: {group.Key, -20}, Entries: {group.Value.Count,-30}");
+            Console.WriteLine($"Date: {group.Key,-20}, Entries: {group.Value.Count,-30}");
 
-            foreach (var entry in group.Value)
-            {
-                Console.WriteLine($" - {entry.Time,-10} | {entry.Position,-5} | Temp: {entry.Temperature,-3}°C | Humidity: {entry.Humidity,-3}%");
-            }
+            averageTempPerDay = group.Value.Average(e => e.Temperature);
+            averageHumidityPerDay = group.Value.Average(e => e.Humidity);
+            averageTempDict.Add(group.Key, averageTempPerDay);
+            averageHumidDict.Add(group.Key, averageTempPerDay);
+            Console.WriteLine($"Average Temprature: {averageTempPerDay} | Average Humidity: {averageHumidityPerDay}");
+            //foreach (var entry in group.Value)
+            //{
+
+            //    Console.WriteLine($" - {entry.Time,-10} | {entry.Position,-5} | Temp: {entry.Temperature,-3}°C | Humidity: {entry.Humidity,-3}%");
+            //}
         }
+        return (averageTempDict, averageHumidDict);
     }
 }

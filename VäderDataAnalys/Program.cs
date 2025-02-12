@@ -10,12 +10,14 @@ namespace VäderDataAnalys
 
             DataExtractService dataExtractService = new DataExtractService();
 
-            //await dataExtractService.ProcessFile();
-            //Console.WriteLine("data extract complete!!!");
+            await dataExtractService.ProcessFile();
+            Console.WriteLine("data extract complete!!!");
 
             await dataExtractService.ProcessFilteredData();
+            
+            (var averageTempDict, var averageHumidDict) = await dataExtractService.CalculateAverageTempPerDay();
 
-            await dataExtractService.CalculateAverageTempPerDay();
+            
 
         }
     }
