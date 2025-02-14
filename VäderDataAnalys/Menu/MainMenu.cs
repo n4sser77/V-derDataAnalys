@@ -83,10 +83,11 @@ namespace VäderDataAnalys.Menu
 
         private static void ListAllToMenu(Dictionary<string, AverageWeather> weatherData)
         {
+            var sortedByTemp = weatherData.OrderByDescending(d => d.Value.AverageTemprature);
 
             Console.WriteLine($"{"Date",-15}{"Avg Temp",-15}{"Avg Humid",-15}{"Position",-10}{"Mold_Risk",-10}");
             bool isOn = false;
-            foreach (var item in weatherData)
+            foreach (var item in sortedByTemp)
             {
 
                 Console.WriteLine($"{item.Value.Date,-15}{item.Value.AverageTemprature.ToString("F2"),-15}{item.Value.AverageHumidity.ToString("F2"),-15}{item.Value.Position,-10}{item.Value.GetMoldRisk().ToString("F2"),-10}");

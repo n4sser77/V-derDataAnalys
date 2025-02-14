@@ -5,6 +5,7 @@ namespace VäderDataAnalys
 {
     public class Program
     {
+        public static Dictionary<string, AverageWeather> balls = new Dictionary<string, AverageWeather>();
         public static async Task Main(string[] args)
         {
 
@@ -22,6 +23,8 @@ namespace VäderDataAnalys
             var averageWeather = await data.CalculateAverageTempPerDay();
 
             var sortedByTemp = averageWeather.Values.OrderByDescending(d => d.AverageTemprature);
+
+            balls = averageWeather;
 
             await MainMenu.Print(averageWeather);
 

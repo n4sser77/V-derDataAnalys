@@ -36,8 +36,11 @@ namespace VäderDataAnalys.Models
             {
                 text += $"{report.Month,-10} {report.AverageTemprature.ToString("F2"),-15} {report.AverageHumidity.ToString("F2"),-15} {report.AverageMoldRisk.ToString("F2"),-18} {report.Position,-15}\n";
             }
-            text += $"\n Metrological Autumn: {AverageWeather.GetMeteoroLogicalAutumn(aw).Date}";
-            text += $"\n Metrological Winter: {AverageWeather.GetMeteoroLogicalWinter(aw).Date}";
+            var fallDay = AverageWeather.GetMeteoroLogicalAutumn(Program.balls);
+            var winterDay = AverageWeather.GetMeteoroLogicalWinter(Program.balls);
+            text += $"\n Metrological Autumn: {fallDay.Date}";
+            text += $"\n Metrological Winter: {winterDay.Date}";
+
             File.WriteAllText(Path.Combine(@"..\..\..\", "Montly_Report.txt"), text);
         }
     }
