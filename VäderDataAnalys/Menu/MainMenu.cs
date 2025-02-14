@@ -17,7 +17,7 @@ namespace VäderDataAnalys.Menu
             {
                 Console.WriteLine("Weahther data app");
 
-                Console.WriteLine("[A]ll | [S]earch | sort by [H]umidity | sort by [M]old risk | [F] Meteorological autumn");
+                Console.WriteLine("[A]ll | [S]earch | sort by [H]umidity | sort by [M]old risk | [F] Meteorological autumn | [R]eport");
                 var k = Console.ReadKey(true);
                 switch (k.Key)
                 {
@@ -51,6 +51,18 @@ namespace VäderDataAnalys.Menu
                         Console.WriteLine("Meteorological autumn date");
                         var winterDay = AverageWeather.GetMeteoroLogicalWinter(weatherData);
                         Console.WriteLine($"{winterDay.Date,-15} {"Average temprature: " + winterDay.AverageTemprature.ToString("F2"),-15} | {"Average humidity: " + winterDay.AverageHumidity.ToString("F2"),-15}");
+                        break;
+                    case ConsoleKey.R:
+                        Console.Clear();
+                        Console.WriteLine("Montly report");
+                        var reports = AverageWeather.GetMonthReport(weatherData);
+                        Console.WriteLine($"{"Month",-10} {"AverageTemp",-15} {"AverageHumid",-15} {"Position",-15}");
+                        foreach (var report in reports)
+                        {
+                            Console.WriteLine($"{report.Month, -10} {report.AverageTemprature.ToString("F2"),-15} {report.AverageHumidity.ToString("F2"),-15} {report.Position,-15}");
+                        }
+                        Console.WriteLine("Report saved!");
+                        reports.WriteToFile();
                         break;
                     default:
                         Thread.Sleep(50);

@@ -98,7 +98,7 @@ public class DataExtractService
                 var match = pattern1.Match(line);
 
                 if (match.Groups["Date"].Success == false || match.Groups["Time"].Success == false
-                    || match.Groups["Position"].Success == false || match.Groups["Temprature"].Success == false || match.Groups["Humidity"].Success == false)
+                    || match.Groups["Position"].Success == false || match.Groups["Temprature"].Success == false || match.Groups["Humidity"].Success == false || match.Groups["Month"].Success == false)
                 {
                     continue;
                 }
@@ -106,6 +106,7 @@ public class DataExtractService
                 var row = new WeatherModel
                 {
                     Date = match.Groups["Date"].Value,
+                    Month = match.Groups["Month"].Value,
                     Time = match.Groups["Time"].Value,
                     Position = match.Groups["Position"].Value,
                     Temperature = double.Parse(match.Groups["Temprature"].Value, CultureInfo.InvariantCulture),
@@ -147,6 +148,8 @@ public class DataExtractService
         double averageHumidityPerDayInne = 0;
         double averageHumidityPerDayUte = 0;
 
+        
+
         // Print grouped data
         foreach (var group in groupedByDate)
         {
@@ -157,13 +160,23 @@ public class DataExtractService
             averageHumidityPerDayInne = group.Value.Where(d => d.Position == "Inne").Select(e => e.Humidity).DefaultIfEmpty(0).Average();
             averageHumidityPerDayUte = group.Value.Where(d => d.Position == "Ute").Select(e => e.Humidity).DefaultIfEmpty(0).Average();
 
+            
+
+            string month = "";
+            foreach (var i in group.Value.AsEnumerable())
+            {
+                month = i.Month;
+                break;
+            }
 
             var averagePerDayInne = new AverageWeather
             {
                 Date = group.Key,
                 AverageHumidity = averageHumidityPerDayInne,
                 AverageTemprature = averageTempPerDayInne,
-                Position = "Inne"
+                Position = "Inne",
+                Month = month
+
 
             };
             averageWeather.Add(group.Key + "-Inne", averagePerDayInne);
@@ -172,7 +185,8 @@ public class DataExtractService
                 Date = group.Key,
                 AverageHumidity = averageHumidityPerDayUte,
                 AverageTemprature = averageTempPerDayUte,
-                Position = "Ute"
+                Position = "Ute",
+                Month = month
 
             };
             averageWeather.Add(group.Key + "-Ute", averagePerDayUte);
