@@ -1,6 +1,6 @@
 ﻿using VäderDataAnalys.Models;
 using VäderDataAnalys.Services;
-
+using VäderDataAnalys.Menu;
 namespace VäderDataAnalys
 {
     public class Program
@@ -8,16 +8,25 @@ namespace VäderDataAnalys
         public static async Task Main(string[] args)
         {
 
-            DataExtractService dataExtractService = new DataExtractService();
-
-            await dataExtractService.ProcessFile();
-            Console.WriteLine("data extract complete!!!");
-
-            await dataExtractService.ProcessFilteredData();
-            
-            (var averageTempDict, var averageHumidDict) = await dataExtractService.CalculateAverageTempPerDay();
+            DataExtractService data = new DataExtractService();
 
             
+
+            
+
+            //await data.ProcessFile();
+            //Console.WriteLine("data extract complete!!!");
+
+            await data.ProcessFilteredData();
+
+            var averageWeather = await data.CalculateAverageTempPerDay();
+
+            var sortedByTemp = averageWeather.Values.OrderByDescending(d => d.AverageTemprature);
+
+            await MainMenu.Print(averageWeather);
+
+
+
 
         }
     }

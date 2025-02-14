@@ -16,8 +16,8 @@ public class DataExtractService
     private string rootPath = @"..\..\..\";
     private string DataFileName = "tempdata5-med-fel.txt";
     // private string FilterdDataPath = @"..\..\..";
-    public Dictionary<string, double> TempData { get; set; }
-    public Dictionary<string, int> HumidityData { get; set; }
+    //public Dictionary<string, double> TempData { get; set; }
+    //public Dictionary<string, int> HumidityData { get; set; }
     public List<WeatherModel> WeatherData { get; set; } = new List<WeatherModel>();
     public async Task ProcessFile(string path = "")
     {
@@ -66,7 +66,7 @@ public class DataExtractService
 
         }
 
-        Console.WriteLine("File exists");
+
 
         using StreamReader sr = new StreamReader(Path.Combine(path, fileName));
         var line = await sr.ReadLineAsync();
@@ -88,7 +88,7 @@ public class DataExtractService
 
     public async Task ProcessFilteredData()
     {
-        Regex pattern1 = new Regex(@"(?<Date>^(?<Year>\d{4})-(?<Month>0[1-9]|1[0-2])-(?<Day>\d{2})) (?<Time>\d{2}:\d{2}:\d{2}),(?<Position>Inne|Ute),(?<Temprature>\-?\d+\.?\d*),(?<Humidity>\d{2})");
+        Regex pattern1 = new Regex(@"(?<Date>^(?<Year>\d{4})-(?<Month>0[1-9]|1[0-2])-(?<Day>0[1-9]|1[0-9]|2[0-9]|3[0-1])) (?<Time>\d{2}:\d{2}:\d{2}),(?<Position>Inne|Ute),(?<Temprature>\-?\d+\.?\d*),(?<Humidity>\d{2})");
         try
         {
 
@@ -117,7 +117,7 @@ public class DataExtractService
 
 
             }
-            Console.WriteLine("List loaded");
+            // Console.WriteLine("List loaded");
 
 
         }
@@ -130,7 +130,7 @@ public class DataExtractService
 
 
 
-    public async Task<(Dictionary<string, double>, Dictionary<string, double>)> CalculateAverageTempPerDay()
+    public async Task<Dictionary<string, AverageWeather>> CalculateAverageTempPerDay()
     {
         // Group by Date
         var groupedByDate = WeatherData
@@ -140,27 +140,54 @@ public class DataExtractService
 
 
 
-        Dictionary<string, double> averageTempDict = new();
-        Dictionary<string, double> averageHumidDict = new();
-        double averageTempPerDay = 0;
-        double averageHumidityPerDay = 0;
+        Dictionary<string, AverageWeather> averageWeather = new();
+
+        double averageTempPerDayInne = 0;
+        double averageTempPerDayUte = 0;
+        double averageHumidityPerDayInne = 0;
+        double averageHumidityPerDayUte = 0;
 
         // Print grouped data
         foreach (var group in groupedByDate)
         {
-            Console.WriteLine($"Date: {group.Key,-20}, Entries: {group.Value.Count,-30}");
+            //  Console.WriteLine($"Date: {group.Key,-20}, Entries: {group.Value.Count,-30}");
 
-            averageTempPerDay = group.Value.Average(e => e.Temperature);
-            averageHumidityPerDay = group.Value.Average(e => e.Humidity);
-            averageTempDict.Add(group.Key, averageTempPerDay);
-            averageHumidDict.Add(group.Key, averageTempPerDay);
-            Console.WriteLine($"Average Temprature: {averageTempPerDay} | Average Humidity: {averageHumidityPerDay}");
+            averageTempPerDayInne = group.Value.Where(d => d.Position == "Inne").Select(e => e.Temperature).DefaultIfEmpty(0).Average();
+            averageTempPerDayUte = group.Value.Where(d => d.Position == "Ute").Select(e => e.Temperature).DefaultIfEmpty(0).Average();
+            averageHumidityPerDayInne = group.Value.Where(d => d.Position == "Inne").Select(e => e.Humidity).DefaultIfEmpty(0).Average();
+            averageHumidityPerDayUte = group.Value.Where(d => d.Position == "Ute").Select(e => e.Humidity).DefaultIfEmpty(0).Average();
+
+
+            var averagePerDayInne = new AverageWeather
+            {
+                Date = group.Key,
+                AverageHumidity = averageHumidityPerDayInne,
+                AverageTemprature = averageTempPerDayInne,
+                Position = "Inne"
+
+            };
+            averageWeather.Add(group.Key + "-Inne", averagePerDayInne);
+            var averagePerDayUte = new AverageWeather
+            {
+                Date = group.Key,
+                AverageHumidity = averageHumidityPerDayUte,
+                AverageTemprature = averageTempPerDayUte,
+                Position = "Ute"
+
+            };
+            averageWeather.Add(group.Key + "-Ute", averagePerDayUte);
+
+
+            // Console.WriteLine($"Average Temprature: {averageTempPerDay.ToString("F2")} | Average Humidity: {averageHumidityPerDay.ToString("F2")}");
             //foreach (var entry in group.Value)
             //{
 
             //    Console.WriteLine($" - {entry.Time,-10} | {entry.Position,-5} | Temp: {entry.Temperature,-3}°C | Humidity: {entry.Humidity,-3}%");
             //}
         }
-        return (averageTempDict, averageHumidDict);
+        return averageWeather;
     }
+
+
+
 }
