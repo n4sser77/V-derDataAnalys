@@ -15,43 +15,54 @@ public class DataExtractService
 {
     private string rootPath = @"..\..\..\";
     private string DataFileName = "tempdata5-med-fel.txt";
-    // private string FilterdDataPath = @"..\..\..";
-    //public Dictionary<string, double> TempData { get; set; }
-    //public Dictionary<string, int> HumidityData { get; set; }
+
     public List<WeatherModel> WeatherData { get; set; } = new List<WeatherModel>();
     public static Dictionary<string, AverageWeather> AverageWeatherData { get; set; } = new Dictionary<string, AverageWeather>();
-    public async Task ProcessFile(string path = "")
+
+
+    public async Task ProcessFile(string filename = "Filtered-data.txt", string regexPatern = @"^(2016-05|2017-01)")
     {
-        if (!string.IsNullOrEmpty(path))
+        try
         {
-            rootPath = path;
-        }
-
-        Regex pattern = new Regex(@"^(2016-05|2017-01)");
-
-        using StreamWriter sw = new StreamWriter(rootPath + "Filtered-Data.txt");
-        if (!File.Exists(rootPath + "Filtered-Data.txt"))
-        {
-            File.Create(rootPath);
-        }
-
-
-
-        int count = 0;
-        await foreach (var line in ReadFileLinesAsync(rootPath, DataFileName))
-        {
-            if (line == null) return;
-
-            if (pattern.IsMatch(line))
+            if (!string.IsNullOrEmpty(filename))
             {
-                Console.WriteLine(line);
-                continue;
+                rootPath = filename;
             }
 
-            await sw.WriteLineAsync(line);
+            Regex pattern = new Regex(regexPatern);
 
-            count++;
+            if (!File.Exists(rootPath + filename))
+            {
+                File.Create(rootPath);
+            }
 
+            using StreamWriter sw = new StreamWriter(rootPath + filename);
+
+            int count = 0;
+            await foreach (var line in ReadFileLinesAsync(rootPath, DataFileName))
+            {
+                if (line == null) return;
+
+                if (pattern.IsMatch(line))
+                {
+                    Console.WriteLine(line);
+                    continue;
+                }
+
+                await sw.WriteLineAsync(line);
+
+                count++;
+            }
+
+        }
+        catch (FileNotFoundException)
+        {
+            Console.WriteLine("File is not found");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Something went wrong!");
+            
         }
     }
 
@@ -59,15 +70,12 @@ public class DataExtractService
     private async IAsyncEnumerable<string> ReadFileLinesAsync(string path, string fileName)
     {
 
-
         if (!File.Exists(Path.Combine(path, fileName)))
         {
             Console.WriteLine("Path: " + Path.Combine(path, fileName));
             throw new FileNotFoundException();
 
         }
-
-
 
         using StreamReader sr = new StreamReader(Path.Combine(path, fileName));
         var line = await sr.ReadLineAsync();
@@ -78,7 +86,6 @@ public class DataExtractService
             line = await sr.ReadLineAsync();
             yield return line;
         }
-
 
     }
 
@@ -125,8 +132,8 @@ public class DataExtractService
         }
         catch (Exception e)
         {
-            Console.WriteLine(e.Message + " " + e.InnerException);
-            throw;
+            Console.WriteLine("Something went wrong!");
+            
         }
     }
 
@@ -170,7 +177,7 @@ public class DataExtractService
                 break;
             }
 
-            var averagePerDayInne = new AverageWeather
+            AverageWeather averagePerDayInne = new AverageWeather
             {
                 Date = group.Key,
                 AverageHumidity = averageHumidityPerDayInne,
