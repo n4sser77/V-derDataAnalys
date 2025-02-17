@@ -7,8 +7,11 @@ using VäderDataAnalys.Models;
 
 namespace VäderDataAnalys.Menu
 {
-    public static class MainMenu
+    public  static class MainMenu
     {
+        // private readonly Dictionary<string, AverageWeather> _weatherData;
+
+            
         public static async Task Print(Dictionary<string, AverageWeather> weatherData)
         {
 
@@ -24,7 +27,7 @@ namespace VäderDataAnalys.Menu
                     // Medeltemperatur och luftfuktighet per dag, för valt datum (sökmöjlighet med validaering
                     case ConsoleKey.A:
                         Console.Clear();
-                        ListAllToMenu(weatherData);
+                        ListAllToMenu(SortByTemprature(weatherData));
                         break;
                     case ConsoleKey.H:
                         Console.Clear();
@@ -59,7 +62,7 @@ namespace VäderDataAnalys.Menu
                         Console.WriteLine($"{"Month",-10} {"AverageTemp",-15} {"AverageHumid",-15} {"Position",-15}");
                         foreach (var report in reports)
                         {
-                            Console.WriteLine($"{report.Month, -10} {report.AverageTemprature.ToString("F2"),-15} {report.AverageHumidity.ToString("F2"),-15} {report.Position,-15}");
+                            Console.WriteLine($"{report.Value.Month,-10} {report.Value.AverageTemprature.ToString("F2"),-15} {report.Value.AverageHumidity.ToString("F2"),-15} {report.Value.Position,-15}");
                         }
                         Console.WriteLine("Report saved!");
                         reports.WriteToFile();
@@ -95,6 +98,11 @@ namespace VäderDataAnalys.Menu
 
         }
 
+        private static Dictionary<string, AverageWeather> SortByTemprature(Dictionary<string, AverageWeather> weatherData)
+        {
+            var sorted = weatherData.OrderByDescending(d => d.Value.AverageTemprature);
+            return sorted.ToDictionary();
+        }
         private static Dictionary<string, AverageWeather> SortByHumidity(Dictionary<string, AverageWeather> weatherData)
         {
             var sorted = weatherData.OrderBy(d => d.Value.AverageHumidity);

@@ -19,6 +19,7 @@ public class DataExtractService
     //public Dictionary<string, double> TempData { get; set; }
     //public Dictionary<string, int> HumidityData { get; set; }
     public List<WeatherModel> WeatherData { get; set; } = new List<WeatherModel>();
+    public static Dictionary<string, AverageWeather> AverageWeatherData { get; set; } = new Dictionary<string, AverageWeather>();
     public async Task ProcessFile(string path = "")
     {
         if (!string.IsNullOrEmpty(path))
@@ -148,7 +149,7 @@ public class DataExtractService
         double averageHumidityPerDayInne = 0;
         double averageHumidityPerDayUte = 0;
 
-        
+
 
         // Print grouped data
         foreach (var group in groupedByDate)
@@ -160,7 +161,7 @@ public class DataExtractService
             averageHumidityPerDayInne = group.Value.Where(d => d.Position == "Inne").Select(e => e.Humidity).DefaultIfEmpty(0).Average();
             averageHumidityPerDayUte = group.Value.Where(d => d.Position == "Ute").Select(e => e.Humidity).DefaultIfEmpty(0).Average();
 
-            
+
 
             string month = "";
             foreach (var i in group.Value.AsEnumerable())
@@ -199,6 +200,7 @@ public class DataExtractService
             //    Console.WriteLine($" - {entry.Time,-10} | {entry.Position,-5} | Temp: {entry.Temperature,-3}°C | Humidity: {entry.Humidity,-3}%");
             //}
         }
+        AverageWeatherData = averageWeather;
         return averageWeather;
     }
 

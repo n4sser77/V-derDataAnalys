@@ -27,19 +27,28 @@ namespace VäderDataAnalys.Models
 
     public static class WeatcherExtension
     {
-        public static void WriteToFile(this List<AverageWeather> aw)
+        
+        public static void WriteToFile(this Dictionary<string, AverageWeather> aw)
         {
+            //aw is without date
             string text = "Montly report\n";
             var reports = aw;
             text += $"{"Month",-10} {"AverageTemp",-15} {"AverageHumid",-15} {"AverageMoldRisk",-18} {"Position",-15}\n";
             foreach (var report in reports)
             {
-                text += $"{report.Month,-10} {report.AverageTemprature.ToString("F2"),-15} {report.AverageHumidity.ToString("F2"),-15} {report.AverageMoldRisk.ToString("F2"),-18} {report.Position,-15}\n";
+                text += $"{report.Value.Month,-10} {report.Value.AverageTemprature.ToString("F2"),-15} {report.Value.AverageHumidity.ToString("F2"),-15} {report.Value.AverageMoldRisk.ToString("F2"),-18} {report.Value.Position,-15}\n";
             }
-            text += $"\n Metrological Autumn: {AverageWeather.GetMeteoroLogicalAutumn(aw).Date}";
-            text += $"\n Metrological Winter: {AverageWeather.GetMeteoroLogicalWinter(aw).Date}";
+
+            // use global data from service
+            var fallDay = AverageWeather.GetMeteoroLogicalAutumn(DataExtractService.AverageWeatherData);
+            var winterDay = AverageWeather.GetMeteoroLogicalWinter(DataExtractService.AverageWeatherData);
+
+            text += $"\n Metrological Autumn: {fallDay.Date}";
+            text += $"\n Metrological Winter: {winterDay.Date}";
+            text += $"\n ((humidity - 78) * (Temp/15))/0,22    -     % risk mögel";
             File.WriteAllText(Path.Combine(@"..\..\..\", "Montly_Report.txt"), text);
         }
+        
     }
     public class AverageWeather
     {
@@ -107,42 +116,7 @@ namespace VäderDataAnalys.Models
             // är det innan eller efter 1 aug?
 
         }
-        public static AverageWeather? GetMeteoroLogicalWinter(List<AverageWeather> weatherData)
-        {
-            // get höst temp
-            var outsideWeatherData = weatherData.Where(d => d.Position == "Ute");
 
-
-            // kolla om det håller i fem dygn
-            int streak = 1;
-            AverageWeather? result = null;
-            foreach (var item in outsideWeatherData)
-            {
-                if (streak >= 5)
-                {
-                    // höst är här
-                    return result;
-                }
-
-                // kollar efter dagar under 10-grader
-                if (item.AverageTemprature <= 0.00)
-                {
-                    // om ja, vi har streak
-                    if (streak == 1) result = item;
-                    streak++;
-                }
-                else
-                {
-                    // reset streak
-                    streak = 1;
-
-                }
-            }
-            return result;
-
-            // är det innan eller efter 1 aug?
-
-        }
 
         public static AverageWeather? GetMeteoroLogicalAutumn(Dictionary<string, AverageWeather> weatherData)
         {
@@ -180,118 +154,42 @@ namespace VäderDataAnalys.Models
             // är det innan eller efter 1 aug?
 
         }
-        public static AverageWeather? GetMeteoroLogicalAutumn(List<AverageWeather> weatherData)
+
+
+        public static Dictionary<string, AverageWeather> GetMonthReport(Dictionary<string, AverageWeather> weatherData)
         {
-            // get höst temp
-            var outsideWeatherData = weatherData.Where(d => d.Position == "Ute");
+            // Gruppindelning baserad på både månad och position
+            var groupedByMonthAndPosition = weatherData.Values
+                .GroupBy(w => new { w.Month, w.Position });
 
+            var monthReport = new Dictionary<string, AverageWeather>();
 
-            // kolla om det håller i fem dygn
-            int streak = 1;
-            AverageWeather? result = null;
-            foreach (var item in outsideWeatherData)
+            foreach (var group in groupedByMonthAndPosition)
             {
-                if (streak >= 5)
-                {
-                    // höst är här
-                    return result;
-                }
+                // Beräkna genomsnitt för varje grupp
+                double avgTemp = group.Select(w => w.AverageTemprature).DefaultIfEmpty(0).Average();
+                double avgHumidity = group.Select(w => w.AverageHumidity).DefaultIfEmpty(0).Average();
+                double avgMoldRisk = group.Select(w => w.GetMoldRisk()).DefaultIfEmpty(0).Average();
 
-                // kollar efter dagar under 10-grader
-                if (item.AverageTemprature < 10.00)
-                {
-                    // om ja, vi har streak
-                    if (streak == 1) result = item;
-                    streak++;
-                }
-                else
-                {
-                    // reset streak
-                    streak = 1;
+                // Skapa en ny nyckel t.ex. "2024-02-Inne" eller "2024-02-Ute"
+                string key = $"{group.Key.Month}-{group.Key.Position}";
 
-                }
+                // Skapa ett nytt AverageWeather-objekt med de aggregerade värdena
+                monthReport[key] = new AverageWeather
+                {
+                    Month = group.Key.Month,
+                    Position = group.Key.Position,
+                    AverageTemprature = avgTemp,
+                    AverageHumidity = avgHumidity,
+                    // Om din klass har en property för risk, annars lägg in på ett sätt som passar
+                    AverageMoldRisk = avgMoldRisk
+                };
             }
-            return result;
 
-            // är det innan eller efter 1 aug?
-
+            // without date
+            return monthReport;
         }
 
-        public static List<AverageWeather?> GetMonthReport(Dictionary<string, AverageWeather> weatherData)
-        {
-            var groupedByMonth = weatherData
-                .GroupBy(d => d.Value.Month)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-
-
-            List<AverageWeather> averageWeatherPerMonth = new();
-
-            double averageTempPerMonthInne = 0;
-            double averageTempPerMonthUte = 0;
-            double averageHumidityPerMonthInne = 0;
-            double averageHumidityPerMonthUte = 0;
-
-            double averageMoldRiskPerMonthInne = 0;
-            double averageMoldRiskPerMonthUte = 0;
-
-            // Print grouped data
-            foreach (var group in groupedByMonth)
-            {
-                //  Console.WriteLine($"Date: {group.Key,-20}, Entries: {group.Value.Count,-30}");
-
-                averageTempPerMonthInne = group.Value.Where(d => d.Value.Position == "Inne").Select(e => e.Value.AverageTemprature).DefaultIfEmpty(0).Average();
-                averageTempPerMonthUte = group.Value.Where(d => d.Value.Position == "Ute").Select(e => e.Value.AverageTemprature).DefaultIfEmpty(0).Average();
-                averageHumidityPerMonthInne = group.Value.Where(d => d.Value.Position == "Inne").Select(e => e.Value.AverageHumidity).DefaultIfEmpty(0).Average();
-                averageHumidityPerMonthUte = group.Value.Where(d => d.Value.Position == "Ute").Select(e => e.Value.AverageHumidity).DefaultIfEmpty(0).Average();
-
-                averageMoldRiskPerMonthInne = group.Value.Where(d => d.Value.Position == "Inne").Select(e => e.Value.GetMoldRisk()).DefaultIfEmpty(0).Average();
-                averageMoldRiskPerMonthUte = group.Value.Where(d => d.Value.Position == "Ute").Select(e => e.Value.GetMoldRisk()).DefaultIfEmpty(0).Average();
-
-
-                string monthIndex = "06";
-                string month = "";
-                foreach (var item in group.Value.AsEnumerable())
-                {
-
-                    if (item.Key.EndsWith("Inne"))
-                    {
-                        var averagePerMonthInne = new AverageWeather
-                        {
-                            Date = item.Value.Date,
-                            Month = group.Key,
-                            AverageHumidity = averageHumidityPerMonthInne,
-                            AverageTemprature = averageTempPerMonthInne,
-                            AverageMoldRisk = averageMoldRiskPerMonthInne,
-                            Position = "Inne"
-                        };
-                        averageWeatherPerMonth.Add(averagePerMonthInne);
-                    }
-                    else
-                    {
-                        var averagePerMonthUte = new AverageWeather
-                        {
-                            Date = item.Value.Date,
-                            Month = group.Key,
-                            AverageTemprature = averageTempPerMonthUte,
-                            AverageHumidity = averageHumidityPerMonthUte,
-                            AverageMoldRisk = averageMoldRiskPerMonthInne,
-                            Position = "Ute"
-                        };
-
-                        
-                            averageWeatherPerMonth.Add(averagePerMonthUte);
-                    }
-
-
-                }
-
-
-            };
-
-
-            return averageWeatherPerMonth;
-        }
     }
 
 

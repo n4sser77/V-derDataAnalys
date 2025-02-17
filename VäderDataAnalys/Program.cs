@@ -20,8 +20,7 @@ namespace VäderDataAnalys
             await data.ProcessFilteredData();
 
             var averageWeather = await data.CalculateAverageTempPerDay();
-
-            var sortedByTemp = averageWeather.Values.OrderByDescending(d => d.AverageTemprature);
+            
 
             await MainMenu.Print(averageWeather);
 
