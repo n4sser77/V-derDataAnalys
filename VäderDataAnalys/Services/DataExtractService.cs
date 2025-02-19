@@ -24,10 +24,7 @@ public class DataExtractService
     {
         try
         {
-            if (!string.IsNullOrEmpty(filename))
-            {
-                rootPath = filename;
-            }
+            
 
             Regex pattern = new Regex(regexPatern);
 

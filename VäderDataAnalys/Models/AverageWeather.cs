@@ -21,7 +21,7 @@ namespace VäderDataAnalys.Models;
             const double RiskDivisor = 0.22;         // Formelns skalningsfaktor
             const double MaxRawRisk = 200.0;         // Maxvärde för rå mögelrisk
 
-            // Beräkna den råa mögelrisken enligt given formel
+            // Beräkna den råa mögelrisken enligt  formel
             double rawRisk = ((AverageHumidity - HumidityThreshold) * (AverageTemprature / TemperatureScale)) / RiskDivisor;
 
             // Normalisera till en skala mellan 0 och 100

@@ -12,8 +12,8 @@ Month      AverageTemp     AverageHumid    AverageMoldRisk    Position
 10         8,18            64,17           0,08               Ute            
 11         22,77           18,98           0,00               Inne           
 11         3,86            84,13           3,77               Ute            
-12         21,24           16,06           0,00               Inne           
-12         2,66            69,60           1,13               Ute            
+12         21,77           16,04           0,00               Inne           
+12         3,15            78,39           2,58               Ute            
 
  Metrological Autumn: 2016-10-04
  Metrological Winter: 2016-11-06

@@ -13,7 +13,7 @@ public class Program
         DataExtractService data = new DataExtractService();
 
 
-        await data.ProcessFile();
+        // await data.ProcessFile();
         //Console.WriteLine("data extract complete!!!");
 
         await data.ProcessFilteredData();
